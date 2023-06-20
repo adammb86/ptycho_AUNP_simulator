@@ -1,7 +1,10 @@
 # user defined functions
 import numpy as np
+import cv2
 from matplotlib.path import Path
 from skimage.draw import polygon
+from skimage.draw import polygon_perimeter
+
 
 # model: 2d random walk
 
@@ -76,7 +79,8 @@ def calcAuNP(opt, par):
                 yStart = int(np.round(yEffective) - minNpixel / 2 + 1)
                 yEnd = int(yStart + minNpixel - 1)
 
-                AuNPimg[(xStart-1):xEnd, (yStart-1)                        :yEnd, iFrame] *= singleAuNPcrop
+                AuNPimg[(xStart-1):xEnd, (yStart-1)
+                         :yEnd, iFrame] *= singleAuNPcrop
 
     return AuNPimg
 
@@ -93,6 +97,24 @@ def calcAperture(opt, aper):
     aperture = np.zeros((opt.Npixel, opt.Npixel), 'float')
     xFill, yFill = polygon(xPOS, yPOS, aperture.shape)
     aperture[xFill, yFill] = 1
+
+    return aperture
+
+
+def calcAperturerounded(opt, aper, corner_radius):
+    edgeUnit = 2 * np.sin(np.pi / aper.sideNumber)
+    xMag = aper.sideLength / opt.dx / edgeUnit
+    yMag = aper.sideLength / opt.dx / edgeUnit
+    aperShape = np.array([(np.sin(2 * np.pi * ii / aper.sideNumber), np.cos(
+        2 * np.pi * ii / aper.sideNumber)) for ii in range(aper.sideNumber)])
+    xPOS = (aperShape[:, 0]) * xMag + round(opt.Npixel / 2)
+    yPOS = (aperShape[:, 1]) * yMag + round(opt.Npixel / 2)
+
+    aperture = np.zeros((opt.Npixel, opt.Npixel), 'float')
+
+    # Generate the rounded corner polygon
+    vertices = np.column_stack((xPOS, yPOS)).astype(np.int32)
+    cv2.fillPoly(aperture, [vertices], 1, lineType=cv2.LINE_AA)
 
     return aperture
 
