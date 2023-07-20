@@ -1,9 +1,9 @@
-# user defined functions
+# user defined function
 import numpy as np
 import cv2
+import tensorflow as tf
 from matplotlib.path import Path
 from skimage.draw import polygon
-from skimage.draw import polygon_perimeter
 
 
 # model: 2d random walk
