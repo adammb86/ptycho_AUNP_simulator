@@ -27,9 +27,17 @@ def calcAperture(opt, aper):
 
     return aperture
 
-# Test the function
-opt = Opt(dx=0.1, Npixel=512)
-aper = Aper(sideNumber=5, sideLengths=[20, 28, 31, 30, 27])
-aperture = calcAperture(opt, aper)
-plt.imshow(aperture)
-plt.show()
+def calcRectangleAperture(opt, aper):
+    edgeUnit = 2 * np.sin(np.pi / 4)
+    xMags = [aper.width / opt.dx / edgeUnit] * 4
+    yMags = [aper.height / opt.dx / edgeUnit] * 4
+    aperShape = Path(np.array([(np.sin(2 * np.pi * ii / 4), np.cos(2 * np.pi * ii / 4)) for ii in range(4)]))
+    xPOS = [(aperShape.vertices[ii, 0]) * xMags[ii] + round(opt.Npixel / 2) for ii in range(4)]
+    yPOS = [(aperShape.vertices[ii, 1]) * yMags[ii] + round(opt.Npixel / 2) for ii in range(4)]
+
+    aperture = np.zeros((opt.Npixel, opt.Npixel), 'float')
+    xStart, yStart, xEnd, yEnd = int(min(xPOS)), int(min(yPOS)), int(max(xPOS)), int(max(yPOS))
+    rr, cc = rectangle(start=(xStart, yStart), extent=(xEnd - xStart, yEnd - yStart))
+    aperture[rr, cc] = 1
+
+    return aperture

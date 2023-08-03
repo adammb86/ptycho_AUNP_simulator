@@ -4,6 +4,7 @@ import cv2
 import tensorflow as tf
 from matplotlib.path import Path
 from skimage.draw import polygon
+from skimage.draw import rectangle
 
 
 # model: 2d random walk
@@ -132,6 +133,21 @@ def calcApertureUnsymmetricalRandom(opt, aper):
     aperture = np.zeros((opt.Npixel, opt.Npixel), 'float')
     xFill, yFill = polygon(xPOS, yPOS, aperture.shape)
     aperture[xFill, yFill] = 1
+
+    return aperture
+
+def calcRectangleAperture(opt, aper):
+    edgeUnit = 2 * np.sin(np.pi / 4)
+    xMags = [aper.height / opt.dx / edgeUnit] * 4
+    yMags = [aper.width / opt.dx / edgeUnit] * 4
+    aperShape = Path(np.array([(np.sin(2 * np.pi * ii / 4), np.cos(2 * np.pi * ii / 4)) for ii in range(4)]))
+    xPOS = [(aperShape.vertices[ii, 0]) * xMags[ii] + round(opt.Npixel / 2) for ii in range(4)]
+    yPOS = [(aperShape.vertices[ii, 1]) * yMags[ii] + round(opt.Npixel / 2) for ii in range(4)]
+
+    aperture = np.zeros((opt.Npixel, opt.Npixel), 'float')
+    xStart, yStart, xEnd, yEnd = int(min(xPOS)), int(min(yPOS)), int(max(xPOS)), int(max(yPOS))
+    rr, cc = rectangle(start=(xStart, yStart), extent=(xEnd - xStart, yEnd - yStart))
+    aperture[rr, cc] = 1
 
     return aperture
 
